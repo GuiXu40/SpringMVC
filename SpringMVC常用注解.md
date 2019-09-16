@@ -80,9 +80,50 @@ Path|String[]|在Servlet环境中只有:url路径映射
 ## :ear_of_rice:参数绑定注解
 <a href="#title">:palm_tree:返回目录</a><br>
 #### :herb:@Requestparam注解
+用于将指定的请求参数赋值给方法中的形参
+
+属性|说明
+---|:--:
+name|指定请求头绑定的名称
+value|name属性的别名
+required|指示参数是否必须绑定
+defaultValue|如果没有参数而使用默认的参数
+```Java
+@requestMapping(value="/login")
+public ModelAndView login(@requestParam("loginname") String loginname,@requesparam("password") String password){
+    return...
+}
+```
+其他写法
+```java
+@RequestParam(value="loginname",required=true,defaultValue="admire")
+```
+required参不是必须的,默认为true
 #### :herb:@Path Variable注解
+可以很方便的获取请求URL中的动态参数,只有一个属性value,类型为String
+```Java
+@RequestMapping(value="/pathVariableTest/{userId}")
+public void pathVariableTest(@PathVariable Interger userId)
+```
+
+
 #### :herb:@RequestHeader注解
+用于将请求头的头信息区数据映射到功能处理的方法的参数上
+
+属性|说明
+---|:--:
+name|指定请求头绑定的名称
+value|name属性的别名
+required|指示参数是否必须绑定
+defaultValue|如果没有参数而使用默认的参数
+
+```Java
+@RequestMapping(value="/requestHeaderTest")
+    public void requestHeaderTest(@RequestHeader("User-Agent") String userAgent,@RequesetHeader(value="Accept") String[] accepts)
+```
 #### :herb:@CookieValue注解
+用于将请求的Cookie数据映射到功能处理方法的参数上
+
 #### :herb:@SessionAttributes注解
 #### :herb:@ModelAttribute注解
 <p id="p4"></p>

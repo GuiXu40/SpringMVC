@@ -71,6 +71,8 @@ headers|String[]|指定request中必须包含某些指定的header
 Path|String[]|在Servlet环境中只有:url路径映射
 
 #### :herb:请求处理方法可出现的参数类型
++ HttpServletRequest
++ HttpSession
 #### :herb:请求处理方法可返回的类型
 #### :herb:Model和ModelMap的使用
 <p id="p3"></p>

@@ -126,6 +126,17 @@ defaultValue|如果没有参数而使用默认的参数
 
 #### :herb:@SessionAttributes注解
 #### :herb:@ModelAttribute注解
+将请求参数绑定到Model对象-->只有一个value属性
+<br>**被@ModelAttribute注释的方法会在Controller每个方法前被执行,因此,在一个Controller映射到多个URL时,要谨慎使用**
+<br>
+有5中使用方式
++ @ModelAttribute(value="")注释返回具体类的方法
++ @ModelAttribute注释void返回值的方法
++ @ModelAttribute注释返回具体类的方法
++ @ModelAttribute和@RequestMapping同时注释一个方法
++ @ModelAttribute注释一个方法的参数
+
+参考实例:<a href="ModelAttributeTest">ModelAttributeTest</a>
 <p id="p4"></p>
 
 ## :ear_of_rice:信息转换

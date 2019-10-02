@@ -882,8 +882,242 @@ insert into tb_employee(loginname,password,name,sex,age,phone,sal,state) values(
 insert into tb_employee(loginname,password,name,sex,age,phone,sal,state) values('xiaohong','123123','小红','女',19,'18428042456',1500,'active');
 insert into tb_employee(loginname,password,name,sex,age,phone,sal,state) values('gaoju','123521','高巨','男',28,'18428042456',7200,'active');
 ```
+编写实体类
+```Java
+package org.Mybatis.domain;
+
+public class Employee {
+    private Integer id;
+    private String loginname;
+    private String password;
+    private String name;
+    private String sex;
+    private Integer age;
+    private String phone;
+    private Double sal;
+    private String state;
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getLoginname() {
+        return loginname;
+    }
+
+    public void setLoginname(String loginname) {
+        this.loginname = loginname;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getSex() {
+        return sex;
+    }
+
+    public void setSex(String sex) {
+        this.sex = sex;
+    }
+
+    public Integer getAge() {
+        return age;
+    }
+
+    public void setAge(Integer age) {
+        this.age = age;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public Double getSal() {
+        return sal;
+    }
+
+    public void setSal(Double sal) {
+        this.sal = sal;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
+    }
+
+    @Override
+    public String toString() {
+        return "[id="+id+"  loginname="+loginname+"  password="+password+"  name="+name+"  sex="+sex+"  age="+age+"  phone="+phone+"  sal="+sal+"  state="+state;
+    }
+}
+```
+XML文件
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.Mybatis.mapper.EmployeeMapper">
+    <select id="selectEmployeeByIdLike" resultType="org.Mybatis.domain.Employee">
+        select * from tb_employee where state='active'
+--         可选条件,如果传进来的参数有id属性,则加上id查询条件
+        <if test="id != null">
+            and id=#{id}
+        </if>
+    </select>
+</mapper>
+```
+mapper接口
+```Java
+package org.Mybatis.mapper;
+
+import org.Mybatis.domain.Employee;
+
+import java.util.HashMap;
+import java.util.List;
+
+public interface EmployeeMapper {
+    List<Employee> selectEmployeeByIdLike(HashMap<String,Object> params);
+}
+```
+test
+```Java
+package org.Mybatis.test;
+
+import org.Mybatis.domain.Employee;
+import org.Mybatis.mapper.EmployeeMapper;
+import org.apache.ibatis.io.Resources;
+import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.apache.ibatis.session.SqlSessionFactoryBuilder;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.List;
+
+public class DynamicSQLTest {
+    public static void main(String[] args) throws IOException {
+        //读取配置文件
+        InputStream inputStream= Resources.getResourceAsStream("mybatis-config.xml");
+        //初始化mybatis,创建SqlSessionFactory类的实例
+        SqlSessionFactory sqlSessionFactory= new SqlSessionFactoryBuilder().build(inputStream);
+        //创建session实例
+        SqlSession session=sqlSessionFactory.openSession();
+        DynamicSQLTest t=new DynamicSQLTest();
+        t.testSelectEmployeeByIdLike(session);
+        session.commit();
+        session.close();
+    }
+    public void testSelectEmployeeByIdLike(SqlSession session){
+        EmployeeMapper em=session.getMapper(EmployeeMapper.class);
+        HashMap<String,Object> params=new HashMap<>();
+        params.put("id",1);
+        List<Employee> employees=em.selectEmployeeByIdLike(params);
+        employees.forEach(employee -> System.out.println(employee));
+    }
+}
+```
 #### :herb:choose
+```xml
+        <choose>
+            <when test="id!=null">
+                and id=#{id}
+            </when>
+            <when test="loginname!=null and password!=null">
+                and loginname=#{loginname} and password=#{password}
+            </when>
+            <otherwise>
+                and sex='男'
+            </otherwise>
+        </choose>
+```
 #### :herb:where
+```xml
+        <where>
+            <if test="state!=null">
+                state=#{state}
+            </if>
+            <if test="id!=null">
+                and id=#{id}
+            </if>
+            <if test="loginname!=null and password!=null">
+                and loginname=#{loginname} and password=#{password}
+            </if>
+        </where>
+```
 #### :herb:set
+```xml
+    <update id="updateEmployeeIfNecessary" parameterType="org.Mybatis.domain.Employee">
+        update tb_employee
+            <set>
+                <if test="loginname!=null">
+                    loginname=#{loginname},
+                </if>
+                <if test="password!=null">
+                    password=#{password},
+                </if>
+                <if test="name!=null">
+                    name=#{name},
+                </if>
+                <if test="sex!=null">
+                    sex=#{sex},
+                </if>
+                <if test="age!=null">
+                    age=#{age},
+                </if>
+                <if test="phone!=null">
+                    phone=#{phone},
+                </if>
+                <if test="sal!=null">
+                    sal=#{sal},
+                </if>
+                <if test="state!=null">
+                    state=#{state}
+                </if>
+            </set>
+        where id=#{id}
+    </update>
+```
 #### :herb:foreach
+```xml
+    <select id="selectEmployeeIn" resultType="org.Mybatis.domain.Employee">
+        select * from tb_employee where id in
+        <foreach collection="list" item="item" index="index" open ="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select
+```
 #### :herb:bind
+```xml
+    <select id="selectEmployeeLikeName" resultType="org.Mybatis.domain.Employee">
+        <bind name="pattern" value="'%'+_parameter.getName()+'%'"/>
+        select * from tb_employee where loginname LIKE #{pattern}
+    </select>
+```
+
+--------------------------------
+#### :herb:<a href="DynamicSQLTest">动态Sql语句</a>
+-------------------------------

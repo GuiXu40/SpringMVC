@@ -862,6 +862,26 @@ public class ManyToManyTest {
 ## :ear_of_rice:动态SQL
 <a href="#title">:palm_tree:返回目录</a><br>
 #### :herb:if
+实例:
+
+创建表
+```mysql
+create table tb_employee(
+		id int(11) primary key auto_increment,
+		loginname varchar(18),
+		password varchar(18),
+		name varchar(18) default null,
+		sex char(2) default null,
+		age int(11) default null,
+		phone varchar(21), 
+		sal double,
+		state varchar(18)
+);
+insert into tb_employee(loginname,password,name,sex,age,phone,sal,state) values('guixu','123456','桂旭','男',18,'18428042456',1200,'active');
+insert into tb_employee(loginname,password,name,sex,age,phone,sal,state) values('xiaoming','123123','小明','男',22,'18428445545',4200,'active');
+insert into tb_employee(loginname,password,name,sex,age,phone,sal,state) values('xiaohong','123123','小红','女',19,'18428042456',1500,'active');
+insert into tb_employee(loginname,password,name,sex,age,phone,sal,state) values('gaoju','123521','高巨','男',28,'18428042456',7200,'active');
+```
 #### :herb:choose
 #### :herb:where
 #### :herb:set

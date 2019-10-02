@@ -440,6 +440,423 @@ public class OneToManyTest {
 }
 ```
 #### :herb:多对多
+例: 一个购物系统,一个用户可以有多个订单,一个订单有多种商品,商品和订单就是多对多的关系
+
+对于数据库中多对多关系建议使用一个中年表来维护关系
+
+**第一步**: 创建数据库中的表
+```mysql
+#创建用户表
+create table tb_user(
+	id int primary key auto_increment,
+	username varchar(18),
+	loginname varchar(18),
+	password varchar(18),
+	phone varchar(18),
+	address varchar(18)
+);
+# 插入用户表测试数据
+Insert into tb_user(username,loginname,password,password,phone,address) values('桂旭','guixu','123456','18428022456','成都');
+#创建商品表
+create table tb_article(
+	id int primary key auto_increment,
+	name varchar(18),
+	price double,
+	remark varchar(18)
+);
+#插入商品测试数据
+insert into tb_article(name,price,remark) values('疯狂Java讲义',152.5,'李刚老师经典著作');
+insert into tb_article(name,price,remark) values('疯狂Android讲义',142.5,'李刚老师经典著作');
+insert into tb_article(name,price,remark) values('疯狂iOS讲义',155.5,'李刚老师经典著作');
+#创建订单表
+create table tb_ordr(
+	id int primary key auto_increment,
+	code varchar(18),
+	total double,
+	user_id Int,
+	foreing key (user_id) references tb_user(id)
+);
+#插入订单数据
+insert into tb_order(code,total,user_id) values('123465',45.1,1);
+insert into tb_order(code,total,user_id) values('555465',45.1,1);
+#创建中间表
+create table tb_item(
+	order_id int,
+	article_id int,
+	amount int,
+	Primary key(order_id,article_id),
+	foreing key (order_id) refereces tb_order(id),
+	foreing key (article_id) refereces tb_article(id)
+);
+#创建插入中间表数据
+insert into tb_item(order_id,article_id ,amount) values(1,1,1);
+insert into tb_item(order_id,article_id ,amount) values(1,2,1);
+insert into tb_item(order_id,article_id ,amount) values(1,3,2);
+insert into tb_item(order_id,article_id ,amount) values(2,4,1);
+insert into tb_item(order_id,article_id ,amount) values(2,1,1);
+```
+
+**第2步**: 创建映射数据表的对象
+
+User
+```Java
+package org.Mybatis.domain;
+
+import java.util.List;
+
+public class User {
+    private Integer id;
+    private String username;
+    private String loginname;
+    private String password;
+    private String phone;
+    private String address;
+    //用户和订单是一对多关系,一个用户-->多个订单
+    private List<Order> orders;
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getLoginname() {
+        return loginname;
+    }
+
+    public void setLoginname(String loginname) {
+        this.loginname = loginname;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public List<Order> getOrders() {
+        return orders;
+    }
+
+    public void setOrders(List<Order> orders) {
+        this.orders = orders;
+    }
+
+    @Override
+    public String toString() {
+        return "id: "+id+"-->username: "+username+"-->loginname: "+loginname+"-->phone: "+phone+"-->address:"+address;
+    }
+}
+```
+order
+```Java
+package org.Mybatis.domain;
+
+import java.util.List;
+
+public class Order {
+    private Integer id;
+    private String code;
+    private Double total;
+    //订单和用户是多对一,一个订单-->一个用户
+    private User user;
+    //订单和商品是多对多关系
+    private List<Article> articles;
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public Double getTotal() {
+        return total;
+    }
+
+    public void setTotal(Double total) {
+        this.total = total;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public List<Article> getArticles() {
+        return articles;
+    }
+
+    public void setArticles(List<Article> articles) {
+        this.articles = articles;
+    }
+
+    @Override
+    public String toString() {
+        return "id: "+id+"-->code: "+code+"-->total: "+total;
+    }
+}
+```
+article
+```Java
+package org.Mybatis.domain;
+
+import java.util.List;
+
+public class Article {
+    private Integer id;
+    private String name;
+    private Double price;
+    private String remark;
+    private List<Order> orders;
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Double getPrice() {
+        return price;
+    }
+
+    public void setPrice(Double price) {
+        this.price = price;
+    }
+
+    public String getRemark() {
+        return remark;
+    }
+
+    public void setRemark(String remark) {
+        this.remark = remark;
+    }
+
+    public List<Order> getOrders() {
+        return orders;
+    }
+
+    public void setOrders(List<Order> orders) {
+        this.orders = orders;
+    }
+
+    @Override
+    public String toString() {
+        return "id:"+id+"-->name: "+name+"-->price: "+ price+"-->remark: "+remark+"-->order: "+orders;
+    }
+}
+```
+**第3步**: xml文件
+
+UserMapper
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.Mybatis.mapper.UserMapper">
+    <resultMap id="userResultMap" type="org.Mybatis.domain.User">
+        <id property="id" column="id"/>
+        <result property="username" column="username"/>
+        <result property="loginname" column="loginname"/>
+        <result property="password" column="password"/>
+        <result property="phone" column="phone"/>
+        <result property="address" column="address"/>
+        <collection property="orders" javaType="ArrayList" column="id" ofType="org.Mybatis.domain.User" select="org.Mybatis.mapper.OrderMapper.selectOrderByUserId" fetchType="lazy">
+            <id property="id" column="id"/>
+            <result property="code" column="code"/>
+            <result property="total" column="total"/>
+        </collection>
+    </resultMap>
+        <select id="selectUserById" resultMap="userResultMap" parameterType="int">
+            select * from tb_user where id=#{id}
+        </select>
+</mapper>
+```
+OrderMapper
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.Mybatis.mapper.OrderMapper">
+    <resultMap id="orderResultMap" type="org.Mybatis.domain.Order">
+        <id property="id" column="id"/>
+        <result property="code" column="code"/>
+        <result property="total" column="total"/>
+        <association property="user" javaType="org.Mybatis.domain.User">
+            <id property="id" column="id"/>
+            <result property="username" column="username"/>
+            <result property="loginname" column="loginname"/>
+            <result property="password" column="password"/>
+            <result property="phone" column="phone"/>
+            <result property="address" column="address"/>
+        </association>
+        <collection property="articles" javaType="ArrayList" column="oid" ofType="org.Mybatis.domain.Article" select="org.Mybatis.mapper.ArticleMapper.selectArticleByOrderId" fetchType="lazy">
+            <id property="id" column="id"/>
+            <result property="name" column="name"/>
+            <result property="price" column="price"/>
+            <result property="remark" column="remark"/>
+        </collection>
+    </resultMap>
+    <select id="selectOrderById" parameterType="int" resultMap="orderResultMap">
+        select u.*,o.id As oid,code,total,user_id from tb_user u,tb_order o where u.id=o.user_id and o.id=#{id};
+    </select>
+<!--    根据user_id查询订单-->
+    <select id="selectOrderByUserId" parameterType="int" resultType="org.Mybatis.domain.Order">
+        select * from tb_order where user_id=#{id}
+    </select>
+</mapper>
+```
+article
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.Mybatis.mapper.ArticleMapper">
+    <select id="selectArticleByOrderId" parameterType="int" resultType="org.Mybatis.domain.Article">
+        select * from tb_article where id in (select article_id from tb_item where order_id =#{id})
+    </select>
+</mapper>
+```
+
+**第4步**: mapper接口对象
+
+UserMapper
+```java 
+package org.Mybatis.mapper;
+
+import org.Mybatis.domain.User;
+
+public interface UserMapper {
+    User selectUserById(int id);
+}
+```
+OrderMapper
+```Java
+package org.Mybatis.mapper;
+
+import org.Mybatis.domain.Order;
+
+public interface OrderMapper {
+    Order selectOrderById(int id);
+}
+```
+**第5步**: test
+```Java
+package org.Mybatis.test;
+
+import org.Mybatis.domain.Article;
+import org.Mybatis.domain.Order;
+import org.Mybatis.domain.User;
+import org.Mybatis.mapper.OrderMapper;
+import org.Mybatis.mapper.UserMapper;
+import org.apache.ibatis.io.Resources;
+import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.apache.ibatis.session.SqlSessionFactoryBuilder;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+
+public class ManyToManyTest {
+    public static void main(String[] args) throws IOException {
+        //读取配置文件
+        InputStream inputStream= Resources.getResourceAsStream("mybatis-config.xml");
+        //初始化mybatis,创建SqlSessionFactory类的实例
+        SqlSessionFactory sqlSessionFactory= new SqlSessionFactoryBuilder().build(inputStream);
+        //创建session实例
+        SqlSession session=sqlSessionFactory.openSession();
+        ManyToManyTest t=new ManyToManyTest();
+        t.testSelectUserById(session);
+        t.testSelectOrderById(session);
+        session.commit();
+        session.close();
+    }
+    //测试一对多关系,查询User(一)-->Order(多)
+    public void testSelectUserById(SqlSession session){
+        //获得UserMapper代理对象
+        UserMapper um=session.getMapper(UserMapper.class);
+        //调用selectUserById方法
+        User user=um.selectUserById(1);
+        //查看查询到的user对象信息
+        System.out.println(user.getId()+" "+user.getUsername());
+        //查看user对象关联的订单信息
+        List<Order> orders=user.getOrders();
+        for (Order order: orders){
+            System.out.println(order);
+        }
+    }
+    //测试多对多关系,查询Order(多)-->Article(多)
+    public void testSelectOrderById(SqlSession session){
+        //获取OrderMapper对象
+        OrderMapper om=session.getMapper(OrderMapper.class);
+        //调用方法
+        Order order =om.selectOrderById(2);
+        //查看查询到的order对象信息
+        System.out.println(order.getId()+" "+order.getCode()+" "+order.getTotal());
+        //查看order对象关联的用户信息
+        User user=order.getUser();
+        System.out.println(user);
+        //查看Order 对象关联的商品信息
+        List<Article> articles=order.getArticles();
+        for (Article article:articles){
+            System.out.println(article);
+        }
+    }
+}
+```
+
+----------------------------
+#### :herb:<a href="ManyToMany">多对多</a>,其中用到了数据库的中间表查询(目前不理解)
+
+----------------------------
 <p id="p2"></p>
 
 ## :ear_of_rice:动态SQL

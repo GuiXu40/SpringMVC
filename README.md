@@ -11,6 +11,7 @@
 #### :seedling:第一节:<a href="基本用法.md">MyBatis基本用法</a>
 #### :seedling:第二节:<a href="关联映射和动态SQL.md">MyBatis的关联映射和动态SQL</a>
 #### :seedling:第三节:<a href="事务管理和缓存机制.md">MyBatis事务管理及缓存机制</a>
+#### :seedling:第四节:<a href="注解配置.md">MyBatis的注解配置</a>
 -------------------
 # -------------标题----------------
 <p id="title"></p>

@@ -1,0 +1,260 @@
+# -------------注解配置----------------
+<p id="title"></p>
+
+## 目录
+<a href="#">:chestnut:常用注解</a><br>
+
+<p id="p1"></p>
+
+## :ear_of_rice:常用注解
+<a href="#title">:palm_tree:返回目录</a><br>
+#### :herb:常见的CRUD(增删改查)SQL语句映射
++ @select
++ @insert
++ @update
++ @delete
+-------------------
+#### <a href=""ADMLTest>普通的SQL注解</a>
+-------------------
+
+#### :herb:关联映射需要的注解
++ @Results :多个结果映射列表
++ @Result :在列和属性之间的单独映射(一般包含在results中)
++ @One :复杂类型的单独属性值映射(必须指定select属性,表示映射的SQL语句的完全限定名)
++ @Many :复杂类型的集合属性值映射(必须指定select属性,表示映射的SQL语句的完全限定名)
+
+**实例**:
+
+##### 一对一映射
+表结构参照**关联映射的一对一关系的tb_crad,tb_person**<br>
+实体类也相同,配置文件也相同
+
+映射的接口: CardMapper
+```java 
+package org.Mybatis.mapper;
+import org.Mybatis.domain.Card;
+import org.apache.ibatis.annotations.Select;
+public interface CardMapper {
+    @Select("select * from tb_card where id=#{id}")
+    Card selectCardById(Integer id);
+}
+```
+PersonMapper
+```java
+package org.Mybatis.mapper;
+import org.Mybatis.domain.Person;
+import org.apache.ibatis.annotations.One;
+import org.apache.ibatis.annotations.Result;
+import org.apache.ibatis.annotations.Results;
+import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.mapping.FetchType;
+public interface PersonMapper {
+    @Select("select * from tb_person where id=#{id}")
+    @Results({
+            @Result(id = true,column = "id",property = "id"),
+            @Result(column = "name",property = "name"),
+            @Result(column = "sex",property = "sex"),
+            @Result(column = "age",property = "age"),
+            @Result(column = "card_id",property = "card",one = @One(select = "org.Mybatis.mapper.CardMapper.selectCardById",fetchType = FetchType.EAGER))
+    })
+    Person selectPersonById(Integer id);
+}
+```
+因为需要将Person对应的Card数据也查询出来,使用了@Result结果映射,column="card_id",property="card"表示Person的Card属性对应tb_person的care_id列,one属性表示一个
+一对一关联映射,fetchType表示查询的类型是立即加载(EAGER)还是懒加载(LAZY)
+
+主函数:
+```Java
+package org.Mybatis.test;
+import org.Mybatis.domain.Person;
+import org.Mybatis.factory.FKSqlSessionFactory;
+import org.Mybatis.mapper.PersonMapper;
+import org.apache.ibatis.session.SqlSession;
+public class OneToOneTest {
+    public static void main(String[] args) {
+        SqlSession session= FKSqlSessionFactory.getSqlSession();
+        PersonMapper pm=session.getMapper(PersonMapper.class);
+        Person p= (Person) pm.selectPersonById(1);
+        System.out.println(p);
+        System.out.println(p.getCard());
+        session.commit();
+        session.close();
+    }
+}
+```
+-----------------------------
+#### <a href="AOneToOneTest">一对一</a>
+-----------------------------
+##### 一对多映射
+表结构参照**关联映射的一对多关系的tb_clazz,tb_student**<br>
+实体类也相同,配置文件也相同
+
+StudentMapper
+```Java
+package org.Mybatis.mapper;
+
+import org.Mybatis.domain.Student;
+import org.apache.ibatis.annotations.Result;
+import org.apache.ibatis.annotations.Results;
+import org.apache.ibatis.annotations.Select;
+
+public interface StudentMapper {
+    @Select("select * from tb_student where clazz_id=#{id}")
+    @Results({
+            @Result(id = true,column = "id",property = "id"),
+            @Result(column = "name",property = "name"),
+            @Result(column = "sex",property = "sex"),
+            @Result(column = "age",property = "age"),
+    })
+    Student selectStudentByClazzId();
+}
+```
+ClazzMapper
+```java
+package org.Mybatis.mapper;
+
+import org.Mybatis.domain.Clazz;
+import org.apache.ibatis.annotations.Many;
+import org.apache.ibatis.annotations.Result;
+import org.apache.ibatis.annotations.Results;
+import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.mapping.FetchType;
+
+public interface ClazzMapper {
+    @Select("select * from tb_clazz where id=#{id}")
+    @Results({
+            @Result(id = true,column = "id",property = "id"),
+            @Result(column = "code",property = "code"),
+            @Result(column = "name",property = "name"),
+            @Result(column = "id",property = "students",many = @Many(select = "org.Mybatis.mapper.StudentMapper.selectStudentByClazzId",fetchType = FetchType.LAZY))
+    })
+    Clazz selectById(int id);
+}
+```
+many属性表示一对多关联属性
+
+主函数:
+```Java
+package org.Mybatis.test;
+
+import org.Mybatis.domain.Clazz;
+import org.Mybatis.factory.FKSqlSessionFactory;
+import org.Mybatis.mapper.ClazzMapper;
+import org.apache.ibatis.session.SqlSession;
+
+public class OneToManyTest {
+    public static void main(String[] args) {
+        SqlSession session= FKSqlSessionFactory.getSqlSession();
+        ClazzMapper cm=session.getMapper(ClazzMapper.class);
+        Clazz clazz=cm.selectById(1);
+        System.out.println(clazz);
+        clazz.getStudents().forEach(student -> System.out.println(student));
+        session.commit();
+        session.close();
+    }
+}
+```
+-----------------------------
+#### <a href="AOneToManyTest">一对多</a>
+-----------------------------
+##### 多对多映射
+表结构参照**关联映射的多对多关系的tb_user,tb_order,tb_article**<br>
+实体类也相同,配置文件也相同
+
+UserMapper
+```Java
+package org.Mybatis.mapper;
+
+import org.Mybatis.domain.User;
+import org.apache.ibatis.annotations.Select;
+
+public interface UserMapper {
+    @Select("select * from tb_user where id=#{id}")
+    User selectById(int id);
+}
+```
+ArticleMapper
+```Java
+package org.Mybatis.mapper;
+
+import org.Mybatis.domain.Article;
+import org.apache.ibatis.annotations.Select;
+
+import java.util.List;
+
+public interface ArticleMapper {
+    @Select("select * from tb_article where id in(select article_id  from tb_item where order_id=#{id})")
+    List<Article> selectByOrderId(Integer order_id);
+}
+```
+OrderMapper
+```java
+package org.Mybatis.mapper;
+
+import org.Mybatis.domain.Order;
+import org.apache.ibatis.annotations.*;
+import org.apache.ibatis.mapping.FetchType;
+
+public interface OrderMapper {
+    @Select("select * from tb_order where id=#{id}")
+    @Results({
+            @Result(id = true,column = "id",property = "id"),
+            @Result(column = "code",property = "code"),
+            @Result(column = "total",property = "total"),
+            @Result(column = "user_id",property = "user",one = @One(select = "org.Mybatis.mapper.UserMapper.selectById",fetchType = FetchType.EAGER)),
+            @Result(column = "id",property = "articles",many = @Many(select = "org.Mybatis.mapper.ArticleMapper.selectByOrderId",fetchType = FetchType.LAZY))
+    })
+    Order selectById(int id);
+}
+```
+主函数:
+```Java
+package org.Mybatis.test;
+
+import org.Mybatis.domain.Order;
+import org.Mybatis.factory.FKSqlSessionFactory;
+import org.Mybatis.mapper.OrderMapper;
+import org.apache.ibatis.session.SqlSession;
+
+public class ManyToManyTest {
+    public static void main(String[] args) {
+        SqlSession session= FKSqlSessionFactory.getSqlSession();
+        OrderMapper om=session.getMapper(OrderMapper.class);
+        Order order =om.selectById(1);
+        System.out.println(order);
+        System.out.println(order.getUser());
+        order.getArticles().forEach(article -> System.out.println(article));
+    }
+}
+```
+-----------------------------
+#### <a href="AManyToManyTest">多对多</a>
+-----------------------------
+
+
+#### :herb:动态SQL
++ SelectProvider
++ InsertProvider
++ UpdateProvider
++ DeleteProvider
+
+都需要指定type和method属性: type:用于指定有动态SQL语句的类,method指定type类中的方法
+-----------------------------
+#### <a href="ADynamicSQLTest">动态SQL的注解</a>
+-----------------------------
+#### :herb:其他注解
++ Options: 提供配置选项的附加项
++ Param: 映射多个参数
+
+
+
+
+
+
+
+
+
+
+
+
+
